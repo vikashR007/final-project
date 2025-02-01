@@ -1,52 +1,63 @@
 #include<LiquidCrystal.h>
-LiquidCrystal lcd(12,11,10,6,8,7);
-int gas = A0;
-int buzzer = 5;
-#include <Servo.h> 
-int servoPin = 9;  
-Servo Servo1;
+LiquidCrystal lcd(8,9,10,11,12,13);
+
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 16
+
+OneWire oneWire(ONE_WIRE_BUS);
+
+DallasTemperature sensors(&oneWire);
+
+ float Celcius=0;
+ float Fahrenheit=0;
+
+
 void setup()
 { 
-   Serial.begin(9600); 
-   pinMode(buzzer, OUTPUT);
-      pinMode(gas,INPUT);
-Servo1.attach(servoPin); 
+Serial.begin(9600);
+  sensors.begin();
+
+ 
+  
   lcd.begin(16,2);
   lcd.setCursor(0,0);
-  lcd.print("LPG GAS LEAKAGE "); 
+  lcd.print("WATER QUALITY"); 
   lcd.setCursor(0,1);
-  lcd.print("DETECTION SYSTEM");
+  lcd.print("MONITORING SYSTEM");
   delay(2000);
   lcd.clear();
+
 }
+
 void loop()
 {
-
-digitalWrite(buzzer,LOW);
-int   gas1=analogRead(gas); 
-   Servo1.write(0); 
-   delay(1000); 
-lcd.setCursor(0,0);
-  lcd.print("GAS = ");
-  lcd.setCursor(6,0);
-  lcd.print(gas1);
- delay(600);
-  lcd.clear();
-
-  if(gas1>900)
-{
-   digitalWrite(buzzer,HIGH);
-   Servo1.write(90); 
-   delay(1000); 
-   while(1)
-   {
-   digitalWrite(buzzer,HIGH);
+  int sensorValue = analogRead(A0);
+  float voltage = sensorValue * (5.0 / 1024.0);
+ 
+  Serial.println ("Sensor Output (V):");
+  Serial.println (voltage);
+  Serial.println();
+  
+   sensors.requestTemperatures(); 
+  Celcius=sensors.getTempCByIndex(0);
+  Fahrenheit=sensors.toFahrenheit(Celcius);
+  Serial.print(" C  ");
+  Serial.print(Celcius);
+  Serial.print(" F  ");
+  Serial.println(Fahrenheit);
+  delay(1000);
+  
   lcd.setCursor(0,0);
-  lcd.print("LEAKAGE DETECTED");
+lcd.print("temp = ");
+  lcd.setCursor(7,0);
+lcd.print(Celcius);
+  
   lcd.setCursor(0,1);
-   lcd.print("REGULATOR OFF");
- delay(5000);
-  lcd.clear();
-   }
+lcd.print("trb level = ");
+  lcd.setCursor(12,1);
+lcd.print(voltage);
+
 }
-}
+   
